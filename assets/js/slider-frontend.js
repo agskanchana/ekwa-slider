@@ -14,18 +14,24 @@ class EkwaSlider {
 		this.isTransitioning = false;
 		this.autoplayInterval = null;
 		this.autoplayDelay = 5000; // 5 seconds
+		this.isMobileBanner = this.slider.classList.contains('ekwa-slider-mobile-banner');
+		this.transitionStyle = this.slider.dataset.transition || 'fade';
 
-		// Don't initialize controls for mobile banner or single slides
-		if (this.slider.classList.contains('ekwa-slider-mobile-banner') || this.totalSlides <= 1) {
-			return;
+		// Always initialize for content animations, but skip controls for mobile banner or single slides
+		if (this.isMobileBanner || this.totalSlides <= 1) {
+			this.initMobileBannerOrSingleSlide();
+		} else {
+			this.init();
 		}
-
-		this.init();
 	}
 
 	init() {
 		this.bindEvents();
 		this.setInitialState();
+
+		// Mark slider as initialized (shows controls)
+		this.slider.classList.add('ekwa-slider-initialized');
+
 		this.startAutoplay();
 
 		// Pause autoplay when tab is not visible
@@ -36,6 +42,22 @@ class EkwaSlider {
 				this.startAutoplay();
 			}
 		});
+	}
+
+	initMobileBannerOrSingleSlide() {
+		// Set initial state for mobile banner or single slide
+		this.slides.forEach((slide, index) => {
+			slide.style.display = index === 0 ? 'block' : 'none';
+			slide.setAttribute('aria-hidden', index === 0 ? 'false' : 'true');
+		});
+
+		// Mark as initialized
+		this.slider.classList.add('ekwa-slider-initialized');
+
+		// Animate content in the first (and likely only) slide
+		if (this.slides[0]) {
+			this.animateSlideContent(this.slides[0]);
+		}
 	}
 
 	bindEvents() {
@@ -135,18 +157,23 @@ class EkwaSlider {
 	}
 
 	animateSlideContent(slideElement) {
-		const contentBlocks = slideElement.querySelectorAll('.ekwa-slider-content-block.has-animation');
+		// Find all content blocks with animate__animated class (animate.css)
+		const contentBlocks = slideElement.querySelectorAll('.ekwa-slider-content-block.animate__animated');
 
 		contentBlocks.forEach(block => {
-			const delay = parseInt(block.dataset.animationDelay) || 0;
+			// Get the animation class (e.g., animate__fadeInUp)
+			const animationClass = Array.from(block.classList).find(cls => cls.startsWith('animate__') && cls !== 'animate__animated');
 
-			// Reset animation state
-			block.classList.remove('animate');
+			if (animationClass) {
+				// Remove and re-add the animation class to retrigger it
+				block.classList.remove(animationClass);
 
-			// Trigger animation after delay
-			setTimeout(() => {
-				block.classList.add('animate');
-			}, delay);
+				// Force reflow to ensure animation restarts
+				void block.offsetWidth;
+
+				// Re-add the animation class
+				block.classList.add(animationClass);
+			}
 		});
 	}
 
@@ -159,40 +186,202 @@ class EkwaSlider {
 		const currentSlideElement = this.slides[this.currentSlide];
 		const nextSlideElement = this.slides[slideIndex];
 
-		// Reset animations on current slide content
-		const currentContentBlocks = currentSlideElement.querySelectorAll('.ekwa-slider-content-block.has-animation');
-		currentContentBlocks.forEach(block => block.classList.remove('animate'));
+		// Apply transition based on style
+		this.applyTransition(currentSlideElement, nextSlideElement, slideIndex);
+	}
 
-		// Fade out current slide
-		currentSlideElement.classList.add('fade-out');
+	applyTransition(currentSlide, nextSlide, slideIndex) {
+		const transitionDuration = 500;
+		const isForward = slideIndex > this.currentSlide || (this.currentSlide === this.totalSlides - 1 && slideIndex === 0);
+
+		switch (this.transitionStyle) {
+			case 'slide':
+				this.slideTransition(currentSlide, nextSlide, isForward, transitionDuration);
+				break;
+			case 'slide-fade':
+				this.slideFadeTransition(currentSlide, nextSlide, isForward, transitionDuration);
+				break;
+			case 'zoom':
+				this.zoomTransition(currentSlide, nextSlide, transitionDuration);
+				break;
+			case 'fade':
+			default:
+				this.fadeTransition(currentSlide, nextSlide, transitionDuration);
+				break;
+		}
+
+		// Update current slide index
+		this.currentSlide = slideIndex;
+
+		// Update dots
+		this.updateDots();
+
+		// Trigger animations on new slide content after transition
+		setTimeout(() => {
+			this.animateSlideContent(nextSlide);
+			this.isTransitioning = false;
+		}, transitionDuration);
+	}
+
+	fadeTransition(currentSlide, nextSlide, duration) {
+		// Use longer duration for smoother fade
+		const fadeDuration = 700;
+
+		// Position next slide behind current slide for crossfade
+		nextSlide.style.position = 'absolute';
+		nextSlide.style.top = '0';
+		nextSlide.style.left = '0';
+		nextSlide.style.width = '100%';
+		nextSlide.style.opacity = '0';
+		nextSlide.style.display = 'block';
+		nextSlide.setAttribute('aria-hidden', 'false');
+
+		// Start crossfade animation
+		requestAnimationFrame(() => {
+			currentSlide.classList.add('fade-out');
+			nextSlide.classList.add('fade-in');
+
+			setTimeout(() => {
+				// Hide and cleanup current slide
+				currentSlide.style.display = 'none';
+				currentSlide.setAttribute('aria-hidden', 'true');
+				currentSlide.classList.remove('fade-out');
+
+				// Cleanup next slide
+				nextSlide.classList.remove('fade-in');
+				nextSlide.style.position = '';
+				nextSlide.style.top = '';
+				nextSlide.style.left = '';
+				nextSlide.style.width = '';
+				nextSlide.style.opacity = '';
+			}, fadeDuration);
+		});
+	}
+
+	slideTransition(currentSlide, nextSlide, isForward, duration) {
+		const direction = isForward ? 'left' : 'right';
+		const container = this.slider.querySelector('.ekwa-slider-container');
+
+		// Set container to relative positioning to contain absolute slides
+		const originalHeight = container.offsetHeight;
+		container.style.minHeight = originalHeight + 'px';
+
+		// Position both slides absolutely for simultaneous animation
+		currentSlide.style.position = 'absolute';
+		currentSlide.style.top = '0';
+		currentSlide.style.left = '0';
+		currentSlide.style.width = '100%';
+		currentSlide.style.zIndex = '1';
+
+		nextSlide.style.position = 'absolute';
+		nextSlide.style.top = '0';
+		nextSlide.style.left = '0';
+		nextSlide.style.width = '100%';
+		nextSlide.style.zIndex = '2';
+		nextSlide.style.display = 'block';
+		nextSlide.setAttribute('aria-hidden', 'false');
+
+		// Add transition classes
+		requestAnimationFrame(() => {
+			currentSlide.classList.add('slide-out-' + direction);
+			nextSlide.classList.add('slide-in-' + direction);
+
+			setTimeout(() => {
+				// Hide and cleanup current slide
+				currentSlide.style.display = 'none';
+				currentSlide.setAttribute('aria-hidden', 'true');
+				currentSlide.classList.remove('slide-out-' + direction);
+
+				// Cleanup next slide classes and styles
+				nextSlide.classList.remove('slide-in-' + direction);
+				nextSlide.style.position = '';
+				nextSlide.style.top = '';
+				nextSlide.style.left = '';
+				nextSlide.style.width = '';
+				nextSlide.style.zIndex = '';
+
+				// Reset current slide styles
+				currentSlide.style.position = '';
+				currentSlide.style.top = '';
+				currentSlide.style.left = '';
+				currentSlide.style.width = '';
+				currentSlide.style.zIndex = '';
+
+				// Reset container height
+				container.style.minHeight = '';
+			}, duration);
+		});
+	}
+
+	slideFadeTransition(currentSlide, nextSlide, isForward, duration) {
+		const direction = isForward ? 'left' : 'right';
+		const container = this.slider.querySelector('.ekwa-slider-container');
+
+		// Set container to relative positioning to contain absolute slides
+		const originalHeight = container.offsetHeight;
+		container.style.minHeight = originalHeight + 'px';
+
+		// Position both slides absolutely for simultaneous animation
+		currentSlide.style.position = 'absolute';
+		currentSlide.style.top = '0';
+		currentSlide.style.left = '0';
+		currentSlide.style.width = '100%';
+		currentSlide.style.zIndex = '1';
+
+		nextSlide.style.position = 'absolute';
+		nextSlide.style.top = '0';
+		nextSlide.style.left = '0';
+		nextSlide.style.width = '100%';
+		nextSlide.style.zIndex = '2';
+		nextSlide.style.display = 'block';
+		nextSlide.setAttribute('aria-hidden', 'false');
+
+		// Add transition classes
+		requestAnimationFrame(() => {
+			currentSlide.classList.add('slide-fade-out-' + direction);
+			nextSlide.classList.add('slide-fade-in-' + direction);
+
+			setTimeout(() => {
+				// Hide and cleanup current slide
+				currentSlide.style.display = 'none';
+				currentSlide.setAttribute('aria-hidden', 'true');
+				currentSlide.classList.remove('slide-fade-out-' + direction);
+
+				// Cleanup next slide classes and styles
+				nextSlide.classList.remove('slide-fade-in-' + direction);
+				nextSlide.style.position = '';
+				nextSlide.style.top = '';
+				nextSlide.style.left = '';
+				nextSlide.style.width = '';
+				nextSlide.style.zIndex = '';
+
+				// Reset current slide styles
+				currentSlide.style.position = '';
+				currentSlide.style.top = '';
+				currentSlide.style.left = '';
+				currentSlide.style.width = '';
+				currentSlide.style.zIndex = '';
+
+				// Reset container height
+				container.style.minHeight = '';
+			}, duration);
+		});
+	}	zoomTransition(currentSlide, nextSlide, duration) {
+		currentSlide.classList.add('zoom-out');
 
 		setTimeout(() => {
-			// Hide current slide
-			currentSlideElement.style.display = 'none';
-			currentSlideElement.setAttribute('aria-hidden', 'true');
-			currentSlideElement.classList.remove('fade-out');
+			currentSlide.style.display = 'none';
+			currentSlide.setAttribute('aria-hidden', 'true');
+			currentSlide.classList.remove('zoom-out');
 
-			// Show next slide
-			nextSlideElement.style.display = 'block';
-			nextSlideElement.setAttribute('aria-hidden', 'false');
-			nextSlideElement.classList.add('fade-in');
+			nextSlide.style.display = 'block';
+			nextSlide.setAttribute('aria-hidden', 'false');
+			nextSlide.classList.add('zoom-in');
 
-			// Update current slide index
-			this.currentSlide = slideIndex;
-
-			// Update dots
-			this.updateDots();
-
-			// Trigger animations on new slide content
-			this.animateSlideContent(nextSlideElement);
-
-			// Clean up animation class
 			setTimeout(() => {
-				nextSlideElement.classList.remove('fade-in');
-				this.isTransitioning = false;
-			}, 500);
-
-		}, 250);
+				nextSlide.classList.remove('zoom-in');
+			}, duration);
+		}, duration / 2);
 	}
 
 	nextSlide() {

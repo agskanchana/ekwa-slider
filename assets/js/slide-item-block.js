@@ -55,11 +55,12 @@
 			const mobileMedia = mobileImageId ? wp.data.select('core').getMedia(mobileImageId) : null;
 
 			// Create editor preview with background image and layered content
-			const editorContent = (desktopImageId && mobileImageId) ?
+			// Show preview if desktop image is selected (mobile will be auto-generated if not provided)
+			const editorContent = desktopImageId ?
 				wp.element.createElement('div', { className: 'ekwa-slide-item-editor-preview' }, [
 					wp.element.createElement('div', { className: 'ekwa-slide-item-editor-background' }, [
 						wp.element.createElement('picture', {}, [
-							wp.element.createElement('source', {
+							mobileMedia && wp.element.createElement('source', {
 								media: '(max-width: 767px)',
 								srcSet: mobileMedia?.source_url || ''
 							}),
@@ -87,7 +88,7 @@
 					])
 				])
 				: wp.element.createElement('div', { className: 'ekwa-slide-item-inner'}, [
-					(!desktopImageId || !mobileImageId) && wp.element.createElement('div', {
+					!desktopImageId && wp.element.createElement('div', {
 						style: {
 							padding: '20px',
 							textAlign: 'center',
@@ -95,7 +96,7 @@
 							border: '2px dashed #ccc',
 							borderRadius: '4px'
 						}
-					}, __('Select both desktop and mobile images to see background preview', 'ekwa-slider')),
+					}, __('Select desktop image to see background preview', 'ekwa-slider')),
 					wp.element.createElement(InnerBlocks, {
 						templateLock: false,
 						allowedBlocks: ['ekwa/slider-content'],
@@ -107,9 +108,11 @@
 			return [
 				wp.element.createElement(InspectorControls, {},
 					wp.element.createElement(PanelBody, { title: __('Slide Images','ekwa-slider'), initialOpen: true }, [
-						renderImageControl(__('Desktop Image','ekwa-slider'), desktopImageId, onSelectDesktop),
-						renderImageControl(__('Mobile Image','ekwa-slider'), mobileImageId, onSelectMobile),
-						(!desktopImageId || !mobileImageId) && wp.element.createElement(Notice, { status:'warning', isDismissible:false }, __('Both desktop and mobile images are required.','ekwa-slider'))
+						renderImageControl(__('Desktop Image (Required)','ekwa-slider'), desktopImageId, onSelectDesktop),
+						!desktopImageId && wp.element.createElement(Notice, { status:'warning', isDismissible:false }, __('Desktop image is required.','ekwa-slider')),
+						wp.element.createElement('hr', { style: { margin: '15px 0', borderColor: '#ddd' } }),
+						renderImageControl(__('Mobile Image (Optional)','ekwa-slider'), mobileImageId, onSelectMobile),
+						wp.element.createElement(Notice, { status:'info', isDismissible:false }, __('Mobile image is optional. If not provided, the desktop image will be automatically cropped for mobile devices.','ekwa-slider'))
 					])
 				),
 				wp.element.createElement('div', { className: 'ekwa-slide-item-editor'}, [

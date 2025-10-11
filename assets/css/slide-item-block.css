@@ -62,32 +62,34 @@
 /* Editor background preview styles */
 .ekwa-slide-item-editor-preview {
   position: relative;
-  min-height: 300px;
   overflow: hidden;
   border-radius: 4px;
 }
 
 .ekwa-slide-item-editor-background {
-  position: absolute;
-  top: 0;
-  left: 0;
+  position: relative;
   width: 100%;
-  height: 100%;
   z-index: 1;
 }
 
 .ekwa-slide-item-editor-background picture,
 .ekwa-slide-item-editor-background img {
   width: 100%;
-  height: 100%;
-  object-fit: cover;
+  height: auto;
+  display: block;
 }
 
 .ekwa-slide-item-editor-content {
-  position: relative;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
   z-index: 2;
-  min-height: 300px;
   padding: 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 /* Front-end styles */
@@ -96,21 +98,22 @@
   overflow: hidden;
 }
 .ekwa-slide-item-background {
-  position: absolute;
-  top: 0;
-  left: 0;
+  position: relative;
   width: 100%;
-  height: 100%;
   z-index: 1;
 }
 .ekwa-slide-item-background picture,
 .ekwa-slide-item-background img {
   width: 100%;
-  height: 100%;
-  object-fit: cover;
+  height: auto;
+  display: block;
 }
 .ekwa-slide-item-content {
-  position: relative;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
   z-index: 2;
 }
 

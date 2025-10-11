@@ -61,6 +61,26 @@ function ekwa_slider_sanitize_settings( $input ) {
 	$sanitized['mobile_banner_enabled'] = ! empty( $input['mobile_banner_enabled'] );
 	$sanitized['mobile_banner_post_id'] = ! empty( $input['mobile_banner_post_id'] ) ? (int) $input['mobile_banner_post_id'] : 0;
 
+	// Transition style validation
+	$allowed_transitions = [ 'fade', 'slide', 'slide-fade', 'zoom' ];
+	$sanitized['transition_style'] = ! empty( $input['transition_style'] ) && in_array( $input['transition_style'], $allowed_transitions, true )
+		? $input['transition_style']
+		: 'fade';
+
+	// Navigation controls
+	$sanitized['show_arrows'] = ! empty( $input['show_arrows'] );
+	$sanitized['show_dots'] = ! empty( $input['show_dots'] );
+
+	// Arrow style
+	$allowed_arrow_styles = [ 'default', 'chevron', 'angle', 'circle-arrow', 'square-arrow' ];
+	$sanitized['arrow_style'] = ! empty( $input['arrow_style'] ) && in_array( $input['arrow_style'], $allowed_arrow_styles, true )
+		? $input['arrow_style']
+		: 'default';
+
+	// Mobile crop width (default 767px)
+	$mobile_width = ! empty( $input['mobile_crop_width'] ) ? (int) $input['mobile_crop_width'] : 767;
+	$sanitized['mobile_crop_width'] = max( 320, min( 1200, $mobile_width ) ); // Between 320px and 1200px
+
 	return $sanitized;
 }
 
@@ -98,7 +118,29 @@ function ekwa_slider_render_settings_page() {
 	$settings = get_option( 'ekwa_slider_settings', [
 		'mobile_banner_enabled' => false,
 		'mobile_banner_post_id' => 0,
+		'transition_style' => 'fade',
+		'show_arrows' => true,
+		'show_dots' => true,
+		'arrow_style' => 'default',
+		'mobile_crop_width' => 767,
 	] );
+
+	// Ensure keys exist
+	if ( ! isset( $settings['transition_style'] ) ) {
+		$settings['transition_style'] = 'fade';
+	}
+	if ( ! isset( $settings['show_arrows'] ) ) {
+		$settings['show_arrows'] = true;
+	}
+	if ( ! isset( $settings['show_dots'] ) ) {
+		$settings['show_dots'] = true;
+	}
+	if ( ! isset( $settings['arrow_style'] ) ) {
+		$settings['arrow_style'] = 'default';
+	}
+	if ( ! isset( $settings['mobile_crop_width'] ) ) {
+		$settings['mobile_crop_width'] = 767;
+	}
 
 	// Get published slides for dropdown
 	$slides = get_posts([
@@ -122,6 +164,82 @@ function ekwa_slider_render_settings_page() {
 					<td>
 						<code>[ekwa_slider]</code>
 						<p class="description"><?php esc_html_e( 'Use this shortcode to display the slider on any page or post.', 'ekwa-slider' ); ?></p>
+					</td>
+				</tr>
+
+				<tr>
+					<th scope="row"><?php esc_html_e( 'Transition Style', 'ekwa-slider' ); ?></th>
+					<td>
+						<select name="ekwa_slider_settings[transition_style]">
+							<option value="fade" <?php selected( $settings['transition_style'], 'fade' ); ?>>
+								<?php esc_html_e( 'Fade - Smooth opacity transition', 'ekwa-slider' ); ?>
+							</option>
+							<option value="slide" <?php selected( $settings['transition_style'], 'slide' ); ?>>
+								<?php esc_html_e( 'Slide - Horizontal sliding transition', 'ekwa-slider' ); ?>
+							</option>
+							<option value="slide-fade" <?php selected( $settings['transition_style'], 'slide-fade' ); ?>>
+								<?php esc_html_e( 'Slide + Fade - Combined sliding and fading', 'ekwa-slider' ); ?>
+							</option>
+							<option value="zoom" <?php selected( $settings['transition_style'], 'zoom' ); ?>>
+								<?php esc_html_e( 'Zoom - Scale in/out transition', 'ekwa-slider' ); ?>
+							</option>
+						</select>
+						<p class="description"><?php esc_html_e( 'Choose the transition effect when slides change.', 'ekwa-slider' ); ?></p>
+					</td>
+				</tr>
+
+				<tr>
+					<th scope="row"><?php esc_html_e( 'Navigation Controls', 'ekwa-slider' ); ?></th>
+					<td>
+						<fieldset>
+							<label>
+								<input type="checkbox" name="ekwa_slider_settings[show_arrows]" value="1" <?php checked( $settings['show_arrows'] ); ?> />
+								<?php esc_html_e( 'Show navigation arrows', 'ekwa-slider' ); ?>
+							</label>
+							<br><br>
+							<label>
+								<input type="checkbox" name="ekwa_slider_settings[show_dots]" value="1" <?php checked( $settings['show_dots'] ); ?> />
+								<?php esc_html_e( 'Show navigation dots', 'ekwa-slider' ); ?>
+							</label>
+							<p class="description"><?php esc_html_e( 'Control visibility of slider navigation elements.', 'ekwa-slider' ); ?></p>
+						</fieldset>
+					</td>
+				</tr>
+
+				<tr>
+					<th scope="row"><?php esc_html_e( 'Arrow Style', 'ekwa-slider' ); ?></th>
+					<td>
+						<select name="ekwa_slider_settings[arrow_style]">
+							<option value="default" <?php selected( $settings['arrow_style'], 'default' ); ?>>
+								<?php esc_html_e( 'Default (← →)', 'ekwa-slider' ); ?>
+							</option>
+							<option value="chevron" <?php selected( $settings['arrow_style'], 'chevron' ); ?>>
+								<?php esc_html_e( 'Chevron (‹ ›)', 'ekwa-slider' ); ?>
+							</option>
+							<option value="angle" <?php selected( $settings['arrow_style'], 'angle' ); ?>>
+								<?php esc_html_e( 'Angle (< >)', 'ekwa-slider' ); ?>
+							</option>
+							<option value="circle-arrow" <?php selected( $settings['arrow_style'], 'circle-arrow' ); ?>>
+								<?php esc_html_e( 'Circle Arrow (⬅ ➡)', 'ekwa-slider' ); ?>
+							</option>
+							<option value="square-arrow" <?php selected( $settings['arrow_style'], 'square-arrow' ); ?>>
+								<?php esc_html_e( 'Square Arrow (⯇ ⯈)', 'ekwa-slider' ); ?>
+							</option>
+						</select>
+						<p class="description"><?php esc_html_e( 'Choose the arrow icon style for navigation.', 'ekwa-slider' ); ?></p>
+					</td>
+				</tr>
+
+				<tr>
+					<th scope="row"><?php esc_html_e( 'Mobile Crop Width', 'ekwa-slider' ); ?></th>
+					<td>
+						<input type="number" name="ekwa_slider_settings[mobile_crop_width]" value="<?php echo esc_attr( $settings['mobile_crop_width'] ); ?>" min="320" max="1200" step="1" style="width: 100px;" />
+						<span>px</span>
+						<p class="description">
+							<?php esc_html_e( 'Maximum width for mobile images (used in picture tag media query and auto-cropping). Default: 767px. Range: 320-1200px.', 'ekwa-slider' ); ?>
+							<br>
+							<strong><?php esc_html_e( 'Picture tag will use:', 'ekwa-slider' ); ?></strong> <code>&lt;source media="(max-width: <?php echo esc_html( $settings['mobile_crop_width'] ); ?>px)"&gt;</code>
+						</p>
 					</td>
 				</tr>
 

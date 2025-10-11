@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Ekwa Slider
  * Description: Provides an admin-managed set of Slides (private CPT), mobile-responsive slider shortcode, and mobile banner functionality.
- * Version: 0.3.0
+ * Version: 0.6.1
  * Author: Your Name / Ekwa
  * License: GPL2+
  * Text Domain: ekwa-slider
@@ -17,7 +17,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 // Constants.
 if ( ! defined( 'EKWA_SLIDER_VERSION' ) ) {
-	define( 'EKWA_SLIDER_VERSION', '0.3.0' );
+	define( 'EKWA_SLIDER_VERSION', '0.6.1' );
 }
 if ( ! defined( 'EKWA_SLIDER_FILE' ) ) {
 	define( 'EKWA_SLIDER_FILE', __FILE__ );

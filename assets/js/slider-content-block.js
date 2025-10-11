@@ -2,8 +2,8 @@
 	const { registerBlockType } = wp.blocks;
 	const { __ } = wp.i18n;
 	const { InspectorControls, InnerBlocks } = wp.blockEditor || wp.editor;
-	const { PanelBody, TextControl } = wp.components;
-	const NumberControl = wp.components.__experimentalNumberControl;
+	const { PanelBody, SelectControl } = wp.components;
+	const NumberControl = wp.components.__experimentalNumberControl || wp.components.TextControl;
 
 	registerBlockType('ekwa/slider-content', {
 		title: __('Slider Content', 'ekwa-slider'),
@@ -28,8 +28,16 @@
 			const { attributes, setAttributes } = props;
 			const { animationDelay, animationType } = attributes;
 
-			// Use NumberControl if available, fallback to TextControl
-			const NumberField = NumberControl || TextControl;
+			const animationOptions = [
+				{ label: __('No Animation', 'ekwa-slider'), value: '' },
+				{ label: __('Fade In Down', 'ekwa-slider'), value: 'fadeInDown' },
+				{ label: __('Fade In Left', 'ekwa-slider'), value: 'fadeInLeft' },
+				{ label: __('Fade In Right', 'ekwa-slider'), value: 'fadeInRight' },
+				{ label: __('Fade In Up', 'ekwa-slider'), value: 'fadeInUp' },
+				{ label: __('Flip In X', 'ekwa-slider'), value: 'flipInX' },
+				{ label: __('Slide In Down', 'ekwa-slider'), value: 'slideInDown' },
+				{ label: __('Slide In Up', 'ekwa-slider'), value: 'slideInUp' }
+			];
 
 			return [
 				wp.element.createElement(InspectorControls, {},
@@ -37,19 +45,19 @@
 						title: __('Animation Settings', 'ekwa-slider'),
 						initialOpen: true
 					}, [
-						wp.element.createElement(TextControl, {
+						wp.element.createElement(SelectControl, {
 							label: __('Animation Type', 'ekwa-slider'),
 							value: animationType,
+							options: animationOptions,
 							onChange: (value) => setAttributes({ animationType: value }),
-							placeholder: __('e.g. fadeIn, slideUp, bounceIn', 'ekwa-slider'),
-							help: __('CSS class or animation name for this content block', 'ekwa-slider')
+							help: __('Choose an animation effect from animate.css', 'ekwa-slider')
 						}),
-						wp.element.createElement(NumberField, {
+						wp.element.createElement(NumberControl, {
 							label: __('Animation Delay (ms)', 'ekwa-slider'),
 							value: animationDelay,
 							onChange: (value) => setAttributes({ animationDelay: parseInt(value) || 0 }),
 							min: 0,
-							max: 10000,
+							max: 5000,
 							step: 100,
 							help: __('Delay before animation starts in milliseconds', 'ekwa-slider')
 						})

@@ -20,25 +20,25 @@ function ekwa_slider_render_slider_content_block( $attributes, $content ) {
 	$animation_delay = isset( $attributes['animationDelay'] ) ? (int) $attributes['animationDelay'] : 0;
 	$animation_type  = isset( $attributes['animationType'] ) ? sanitize_text_field( $attributes['animationType'] ) : '';
 
-	// Build data attributes for animation
-	$data_attrs = '';
+	// Build CSS classes for animation
+	$css_classes = [ 'ekwa-slider-content-block' ];
+
 	if ( ! empty( $animation_type ) ) {
-		$data_attrs .= ' data-animation="' . esc_attr( $animation_type ) . '"';
-	}
-	if ( $animation_delay > 0 ) {
-		$data_attrs .= ' data-animation-delay="' . esc_attr( $animation_delay ) . '"';
+		// Add animate.css classes
+		$css_classes[] = 'animate__animated';
+		$css_classes[] = 'animate__' . sanitize_html_class( $animation_type );
 	}
 
-	// CSS classes for animation
-	$css_classes = [ 'ekwa-slider-content-block' ];
-	if ( ! empty( $animation_type ) ) {
-		$css_classes[] = 'has-animation';
-		$css_classes[] = 'animation-' . sanitize_html_class( $animation_type );
+	// Build inline style for animation delay
+	$inline_style = '';
+	if ( $animation_delay > 0 ) {
+		$delay_seconds = $animation_delay / 1000;
+		$inline_style = ' style="animation-delay: ' . esc_attr( $delay_seconds ) . 's; -webkit-animation-delay: ' . esc_attr( $delay_seconds ) . 's;"';
 	}
 
 	ob_start();
 	?>
-	<div class="<?php echo esc_attr( implode( ' ', $css_classes ) ); ?>"<?php echo $data_attrs; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>>
+	<div class="<?php echo esc_attr( implode( ' ', $css_classes ) ); ?>"<?php echo $inline_style; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>>
 		<?php echo $content; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 	</div>
 	<?php
@@ -59,6 +59,8 @@ function ekwa_slider_register_slider_content_block() {
 		EKWA_SLIDER_VERSION,
 		true
 	);
+
+	// Note: Animate.css animations are now included in slider-frontend.css
 
 	register_block_type( 'ekwa/slider-content', [
 		'editor_script'   => $handle,
