@@ -73,12 +73,15 @@ function ekwa_slider_render_slide_item_block( $attributes, $content ) {
 				<?php if ( $mobile_webp ) : ?>
 					<source media="(max-width: <?php echo esc_attr( $mobile_width ); ?>px)" srcset="<?php echo esc_url( $mobile_webp ); ?>" type="image/webp">
 				<?php endif; ?>
-				<source media="(max-width: <?php echo esc_attr( $mobile_width ); ?>px)" srcset="<?php echo esc_url( $mobile_cropped_url ? $mobile_cropped_url : $mobile_url ); ?>">
 
 				<?php if ( $desktop_webp ) : ?>
 					<source media="(min-width: <?php echo esc_attr( $mobile_width + 1 ); ?>px)" srcset="<?php echo esc_url( $desktop_webp ); ?>" type="image/webp">
 				<?php endif; ?>
-				<source media="(min-width: <?php echo esc_attr( $mobile_width + 1 ); ?>px)" srcset="<?php echo esc_url( $desktop_url ); ?>">
+
+				<?php // Fallback sources without media queries - browser will choose based on support ?>
+				<?php if ( $mobile_cropped_url && $mobile_cropped_url !== $desktop_url ) : ?>
+					<source media="(max-width: <?php echo esc_attr( $mobile_width ); ?>px)" srcset="<?php echo esc_url( $mobile_cropped_url ); ?>">
+				<?php endif; ?>
 
 				<img
 					src="<?php echo esc_url( $desktop_url ); ?>"
