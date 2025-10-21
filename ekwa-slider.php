@@ -15,6 +15,15 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+require 'includes/plugin-update-checker/plugin-update-checker.php';
+use YahnisElsts\PluginUpdateChecker\v5\PucFactory;
+
+$myUpdateChecker = PucFactory::buildUpdateChecker(
+	'https://github.com/agskanchana/ekwa-slider/',
+	__FILE__,
+	'ekwa-slider'
+);
+
 // Constants.
 if ( ! defined( 'EKWA_SLIDER_VERSION' ) ) {
 	define( 'EKWA_SLIDER_VERSION', '0.7.1' );
