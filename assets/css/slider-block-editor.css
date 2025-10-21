@@ -1,0 +1,84 @@
+/**
+ * Ekwa Slider Block Editor Styles
+ */
+
+.ekwa-slider-block-preview {
+	border: 2px dashed #ccc;
+	border-radius: 4px;
+	padding: 20px;
+	background: #f9f9f9;
+	min-height: 200px;
+	position: relative;
+}
+
+.ekwa-slider-block-preview .ekwa-slider {
+	margin: 0;
+}
+
+/* Loading state */
+.ekwa-slider-block-preview .components-spinner {
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+}
+
+/* Block inspector help text */
+.components-panel__body .ekwa-slider-help {
+	padding: 10px;
+	background: #e7f5fe;
+	border-left: 4px solid #00a0d2;
+	margin-top: 15px;
+	border-radius: 2px;
+}
+
+.components-panel__body .ekwa-slider-help p {
+	margin: 0;
+	font-size: 13px;
+	line-height: 1.5;
+}
+
+/* Make slider controls visible in editor */
+.ekwa-slider-block-preview .ekwa-slider-controls,
+.ekwa-slider-block-preview .ekwa-slider-dots {
+	opacity: 1 !important;
+	visibility: visible !important;
+}
+
+/* Make only the first slide visible in editor preview */
+.ekwa-slider-block-preview .ekwa-slider-slide {
+	opacity: 0 !important;
+	visibility: hidden !important;
+	display: none !important;
+}
+
+.ekwa-slider-block-preview .ekwa-slider-slide[data-slide="0"] {
+	opacity: 1 !important;
+	visibility: visible !important;
+	display: block !important;
+}
+
+/* Align wide/full support */
+.wp-block[data-align="wide"] .ekwa-slider-block-preview,
+.wp-block[data-align="full"] .ekwa-slider-block-preview {
+	max-width: 100%;
+}
+
+/* Block placeholder when no slides */
+.ekwa-slider-block-preview .ekwa-slider-empty-message {
+	text-align: center;
+	padding: 40px 20px;
+	color: #666;
+}
+
+.ekwa-slider-block-preview .ekwa-slider-empty-message h3 {
+	margin: 0 0 10px;
+	font-size: 16px;
+	font-weight: 600;
+	color: #1e1e1e;
+}
+
+.ekwa-slider-block-preview .ekwa-slider-empty-message p {
+	margin: 0;
+	font-size: 14px;
+}

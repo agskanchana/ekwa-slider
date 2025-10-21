@@ -144,8 +144,19 @@ add_shortcode( 'ekwa_slider', 'ekwa_slider_shortcode' );
  * Enqueue frontend assets for slider.
  */
 function ekwa_slider_enqueue_frontend_assets() {
-	if ( ! has_shortcode( get_post()->post_content ?? '', 'ekwa_slider' ) && ! is_home() && ! is_front_page() ) {
-		return; // Only load when shortcode is used or on home/front page
+	$post = get_post();
+
+	// Check if we're in the block editor
+	if ( is_admin() ) {
+		return; // Don't load on admin pages (block editor handles it separately)
+	}
+
+	// Check if shortcode or block is used
+	$has_shortcode = $post && has_shortcode( $post->post_content, 'ekwa_slider' );
+	$has_block = $post && has_block( 'ekwa/slider', $post );
+
+	if ( ! $has_shortcode && ! $has_block && ! is_home() && ! is_front_page() ) {
+		return; // Only load when shortcode/block is used or on home/front page
 	}
 
 	wp_enqueue_style(

@@ -1,8 +1,8 @@
 <?php
 /**
  * Plugin Name: Ekwa Slider
- * Description: Provides an admin-managed set of Slides (private CPT), mobile-responsive slider shortcode, and mobile banner functionality.
- * Version: 0.6.1
+ * Description: Provides an admin-managed set of Slides (private CPT), mobile-responsive slider shortcode, Gutenberg block, and mobile banner functionality.
+ * Version: 0.7.1
  * Author: Your Name / Ekwa
  * License: GPL2+
  * Text Domain: ekwa-slider
@@ -17,7 +17,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 // Constants.
 if ( ! defined( 'EKWA_SLIDER_VERSION' ) ) {
-	define( 'EKWA_SLIDER_VERSION', '0.6.1' );
+	define( 'EKWA_SLIDER_VERSION', '0.7.1' );
 }
 if ( ! defined( 'EKWA_SLIDER_FILE' ) ) {
 	define( 'EKWA_SLIDER_FILE', __FILE__ );
@@ -36,6 +36,7 @@ require_once EKWA_SLIDER_DIR . 'includes/settings.php';
 require_once EKWA_SLIDER_DIR . 'includes/auto-titles.php';
 require_once EKWA_SLIDER_DIR . 'includes/blocks/slide-item.php';
 require_once EKWA_SLIDER_DIR . 'includes/blocks/slider-content.php';
+require_once EKWA_SLIDER_DIR . 'includes/blocks/slider-block.php';
 require_once EKWA_SLIDER_DIR . 'includes/shortcode.php';
 
 
