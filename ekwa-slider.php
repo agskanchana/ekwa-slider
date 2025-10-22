@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Ekwa Slider
  * Description: Provides an admin-managed set of Slides (private CPT), mobile-responsive slider shortcode, Gutenberg block, and mobile banner functionality.
- * Version: 0.7.3
+ * Version: 0.7.4
  * Author: Your Name / Ekwa
  * License: GPL2+
  * Text Domain: ekwa-slider
@@ -26,7 +26,7 @@ $myUpdateChecker = PucFactory::buildUpdateChecker(
 
 // Constants.
 if ( ! defined( 'EKWA_SLIDER_VERSION' ) ) {
-	define( 'EKWA_SLIDER_VERSION', '0.7.3' );
+	define( 'EKWA_SLIDER_VERSION', '0.7.4' );
 }
 if ( ! defined( 'EKWA_SLIDER_FILE' ) ) {
 	define( 'EKWA_SLIDER_FILE', __FILE__ );
