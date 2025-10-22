@@ -62,6 +62,11 @@ function ekwa_slider_render_slide_item_block( $attributes, $content ) {
 	$settings = get_option( 'ekwa_slider_settings', [ 'mobile_crop_width' => 767 ] );
 	$mobile_width = ! empty( $settings['mobile_crop_width'] ) ? (int) $settings['mobile_crop_width'] : 767;
 
+	// Get image dimensions for width/height attributes (prevent CLS)
+	$desktop_meta = wp_get_attachment_metadata( $desktop_id );
+	$img_width = isset( $desktop_meta['width'] ) ? (int) $desktop_meta['width'] : '';
+	$img_height = isset( $desktop_meta['height'] ) ? (int) $desktop_meta['height'] : '';
+
 	// Process the saved InnerBlocks content
 	$inner = ! empty( $content ) ? $content : '';
 
@@ -86,6 +91,8 @@ function ekwa_slider_render_slide_item_block( $attributes, $content ) {
 				<img
 					src="<?php echo esc_url( $desktop_url ); ?>"
 					alt="<?php echo esc_attr( $alt_text ); ?>"
+					<?php if ( $img_width ) : ?>width="<?php echo esc_attr( $img_width ); ?>"<?php endif; ?>
+					<?php if ( $img_height ) : ?>height="<?php echo esc_attr( $img_height ); ?>"<?php endif; ?>
 					loading="lazy"
 				>
 			</picture>
