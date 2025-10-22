@@ -227,12 +227,13 @@ class EkwaSlider {
 		// Use longer duration for smoother fade
 		const fadeDuration = 700;
 
-		// Remove active class from current slide
-		currentSlide.classList.remove('active');
-		currentSlide.classList.add('transitioning-out');
-
-		// Add active class to next slide immediately
-		nextSlide.classList.add('active');
+		// Position next slide behind current slide for crossfade
+		nextSlide.style.position = 'absolute';
+		nextSlide.style.top = '0';
+		nextSlide.style.left = '0';
+		nextSlide.style.width = '100%';
+		nextSlide.style.opacity = '0';
+		nextSlide.style.display = 'block';
 		nextSlide.setAttribute('aria-hidden', 'false');
 
 		// Start crossfade animation
@@ -241,12 +242,18 @@ class EkwaSlider {
 			nextSlide.classList.add('fade-in');
 
 			setTimeout(() => {
-				// Cleanup current slide
+				// Hide and cleanup current slide
+				currentSlide.style.display = 'none';
 				currentSlide.setAttribute('aria-hidden', 'true');
-				currentSlide.classList.remove('fade-out', 'transitioning-out');
+				currentSlide.classList.remove('fade-out');
 
 				// Cleanup next slide
 				nextSlide.classList.remove('fade-in');
+				nextSlide.style.position = '';
+				nextSlide.style.top = '';
+				nextSlide.style.left = '';
+				nextSlide.style.width = '';
+				nextSlide.style.opacity = '';
 			}, fadeDuration);
 		});
 	}

@@ -36,36 +36,20 @@
 .ekwa-slider-container {
   position: relative;
   width: 100%;
-  min-height: 300px;
+  overflow: hidden;
 }
 
 .ekwa-slider-slide {
-  position: absolute;
-  top: 0;
-  left: 0;
+  position: relative;
   width: 100%;
+  transition: opacity 0.5s ease-in-out;
   opacity: 0;
   visibility: hidden;
-  transition: opacity 0.7s cubic-bezier(0.4, 0.0, 0.2, 1), visibility 0.7s cubic-bezier(0.4, 0.0, 0.2, 1);
 }
 
-/* First slide sets the height */
-.ekwa-slider-slide:first-child,
-.ekwa-slider-slide.active {
-  position: relative;
-}
-
-.ekwa-slider-slide[aria-hidden="false"],
-.ekwa-slider-slide.active {
+.ekwa-slider-slide[aria-hidden="false"] {
   opacity: 1;
   visibility: visible;
-  z-index: 2;
-}
-
-/* Transitioning out slide */
-.ekwa-slider-slide.transitioning-out {
-  position: absolute;
-  z-index: 1;
 }
 
 /* Add will-change for better animation performance */
