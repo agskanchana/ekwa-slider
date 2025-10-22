@@ -37,14 +37,22 @@
   position: relative;
   width: 100%;
   overflow: hidden;
+  /* Set height based on first slide to prevent layout shift */
 }
 
 .ekwa-slider-slide {
-  position: relative;
+  position: absolute;
+  top: 0;
+  left: 0;
   width: 100%;
+  height: 100%;
   transition: opacity 0.5s ease-in-out;
   opacity: 0;
   visibility: hidden;
+}
+
+.ekwa-slider-slide:first-child {
+  position: relative;
 }
 
 .ekwa-slider-slide[aria-hidden="false"] {
