@@ -4,6 +4,10 @@
 
 class EkwaSlider {
 	constructor(element) {
+		if (element.classList.contains('ekwa-slider-initialized')) {
+			return;
+		}
+
 		this.slider = element;
 		this.slides = this.slider.querySelectorAll('.ekwa-slider-slide');
 		this.prevButton = this.slider.querySelector('.ekwa-slider-prev');
@@ -16,6 +20,9 @@ class EkwaSlider {
 		this.autoplayDelay = 5000; // 5 seconds
 		this.isMobileBanner = this.slider.classList.contains('ekwa-slider-mobile-banner');
 		this.transitionStyle = this.slider.dataset.transition || 'fade';
+
+		// Prepare animations (strip classes, hide content)
+		this.prepareContentAnimations();
 
 		// Always initialize for content animations, but skip controls for mobile banner or single slides
 		if (this.isMobileBanner || this.totalSlides <= 1) {
@@ -47,8 +54,15 @@ class EkwaSlider {
 	initMobileBannerOrSingleSlide() {
 		// Set initial state for mobile banner or single slide
 		this.slides.forEach((slide, index) => {
-			slide.style.display = index === 0 ? 'block' : 'none';
-			slide.setAttribute('aria-hidden', index === 0 ? 'false' : 'true');
+			if (index === 0) {
+				slide.classList.add('active');
+				slide.style.display = 'block';
+				slide.style.position = 'relative';
+				slide.setAttribute('aria-hidden', 'false');
+			} else {
+				slide.style.display = 'none';
+				slide.setAttribute('aria-hidden', 'true');
+			}
 		});
 
 		// Mark as initialized
@@ -142,8 +156,18 @@ class EkwaSlider {
 
 	setInitialState() {
 		this.slides.forEach((slide, index) => {
-			slide.style.display = index === 0 ? 'block' : 'none';
-			slide.setAttribute('aria-hidden', index === 0 ? 'false' : 'true');
+			if (index === 0) {
+				// First slide is active and visible
+				slide.classList.add('active');
+				slide.style.display = 'block';
+				slide.style.position = 'relative';
+				slide.setAttribute('aria-hidden', 'false');
+			} else {
+				// Other slides are hidden
+				slide.classList.remove('active');
+				slide.style.display = 'none';
+				slide.setAttribute('aria-hidden', 'true');
+			}
 		});
 
 		if (this.dots.length > 0) {
@@ -156,23 +180,57 @@ class EkwaSlider {
 		}
 	}
 
+	prepareContentAnimations() {
+		this.slides.forEach(slide => {
+			const contentBlocks = slide.querySelectorAll('.ekwa-slider-content-block.animate__animated');
+			contentBlocks.forEach(block => {
+				// Store original animation classes
+				const classes = Array.from(block.classList);
+				const animationClasses = classes.filter(cls => cls.startsWith('animate__') && cls !== 'animate__animated');
+				
+				if (animationClasses.length > 0) {
+					block.dataset.ekwaAnimation = animationClasses.join(' ');
+					block.classList.remove(...animationClasses);
+					block.style.opacity = '0'; // Hide initially so it doesn't flash
+				}
+			});
+		});
+	}
+
+	resetSlideContent(slideElement) {
+		const contentBlocks = slideElement.querySelectorAll('.ekwa-slider-content-block.animate__animated');
+		contentBlocks.forEach(block => {
+			if (block.dataset.ekwaAnimation) {
+				const animationClasses = block.dataset.ekwaAnimation.split(' ');
+				block.classList.remove(...animationClasses);
+				block.style.opacity = '0'; // Hide and wait for next animation
+			}
+		});
+	}
+
 	animateSlideContent(slideElement) {
 		// Find all content blocks with animate__animated class (animate.css)
 		const contentBlocks = slideElement.querySelectorAll('.ekwa-slider-content-block.animate__animated');
 
 		contentBlocks.forEach(block => {
-			// Get the animation class (e.g., animate__fadeInUp)
-			const animationClass = Array.from(block.classList).find(cls => cls.startsWith('animate__') && cls !== 'animate__animated');
-
-			if (animationClass) {
-				// Remove and re-add the animation class to retrigger it
-				block.classList.remove(animationClass);
-
-				// Force reflow to ensure animation restarts
-				void block.offsetWidth;
-
-				// Re-add the animation class
-				block.classList.add(animationClass);
+			// If we stored animation classes, restore them now
+			if (block.dataset.ekwaAnimation) {
+				const animationClasses = block.dataset.ekwaAnimation.split(' ');
+				
+				// Ensure clean state
+				block.classList.remove(...animationClasses);
+				void block.offsetWidth; // Force reflow
+				
+				block.style.opacity = ''; // Make visible (animation controls opacity)
+				block.classList.add(...animationClasses);
+			} else {
+				// Fallback for legacy behavior (direct class manipulation if no dataset)
+				const animationClass = Array.from(block.classList).find(cls => cls.startsWith('animate__') && cls !== 'animate__animated');
+				if (animationClass) {
+					block.classList.remove(animationClass);
+					void block.offsetWidth;
+					block.classList.add(animationClass);
+				}
 			}
 		});
 	}
@@ -216,62 +274,83 @@ class EkwaSlider {
 		// Update dots
 		this.updateDots();
 
-		// Trigger animations on new slide content after transition
 		setTimeout(() => {
 			this.animateSlideContent(nextSlide);
+			
+			// Reset old slide content so it's ready to animate again
+			this.resetSlideContent(currentSlide);
+			
 			this.isTransitioning = false;
 		}, transitionDuration);
 	}
 
 	fadeTransition(currentSlide, nextSlide, duration) {
-		// Use longer duration for smoother fade
 		const fadeDuration = 700;
+		const container = this.slider.querySelector('.ekwa-slider-container');
 
-		// Remove active class from current slide
+		// Store current height to prevent layout shift
+		const currentHeight = currentSlide.offsetHeight;
+		container.style.minHeight = currentHeight + 'px';
+
+		// Apply classes for CSS-driven transition
+		currentSlide.classList.add('fade-out', 'transitioning-out');
 		currentSlide.classList.remove('active');
-		currentSlide.classList.add('transitioning-out');
 
-		// Add active class to next slide immediately
-		nextSlide.classList.add('active');
+		// Show next slide
+		nextSlide.style.display = 'block';
+		nextSlide.style.visibility = 'visible';
+		nextSlide.classList.add('active', 'fade-in');
 		nextSlide.setAttribute('aria-hidden', 'false');
 
-		// Start crossfade animation
-		requestAnimationFrame(() => {
-			currentSlide.classList.add('fade-out');
-			nextSlide.classList.add('fade-in');
+		// Clean up after animation
+		setTimeout(() => {
+			// Hide old slide
+			currentSlide.classList.remove('fade-out', 'transitioning-out');
+			currentSlide.style.display = 'none';
+			currentSlide.setAttribute('aria-hidden', 'true');
 
+			// Clean up next slide state
+			nextSlide.classList.remove('fade-in');
+			nextSlide.style.visibility = '';
+			nextSlide.style.display = ''; // Clear inline display to let CSS handle it
+
+			// Release container height
 			setTimeout(() => {
-				// Cleanup current slide
-				currentSlide.setAttribute('aria-hidden', 'true');
-				currentSlide.classList.remove('fade-out', 'transitioning-out');
-
-				// Cleanup next slide
-				nextSlide.classList.remove('fade-in');
-			}, fadeDuration);
-		});
+				container.style.minHeight = '';
+			}, 50);
+		}, fadeDuration);
 	}
 
 	slideTransition(currentSlide, nextSlide, isForward, duration) {
 		const direction = isForward ? 'left' : 'right';
 		const container = this.slider.querySelector('.ekwa-slider-container');
 
-		// Set container to relative positioning to contain absolute slides
-		const originalHeight = container.offsetHeight;
-		container.style.minHeight = originalHeight + 'px';
+		// Lock container height before positioning changes
+		const currentHeight = container.offsetHeight;
+		container.style.height = currentHeight + 'px';
+		container.style.minHeight = currentHeight + 'px';
+
+		// Remove active class from current slide
+		currentSlide.classList.remove('active');
+		currentSlide.classList.add('transitioning-out');
 
 		// Position both slides absolutely for simultaneous animation
 		currentSlide.style.position = 'absolute';
 		currentSlide.style.top = '0';
 		currentSlide.style.left = '0';
 		currentSlide.style.width = '100%';
+		currentSlide.style.height = '100%';
 		currentSlide.style.zIndex = '1';
+		currentSlide.style.display = 'block';
 
 		nextSlide.style.position = 'absolute';
 		nextSlide.style.top = '0';
 		nextSlide.style.left = '0';
 		nextSlide.style.width = '100%';
+		nextSlide.style.height = '100%';
 		nextSlide.style.zIndex = '2';
 		nextSlide.style.display = 'block';
+		nextSlide.classList.add('active');
 		nextSlide.setAttribute('aria-hidden', 'false');
 
 		// Add transition classes
@@ -283,14 +362,17 @@ class EkwaSlider {
 				// Hide and cleanup current slide
 				currentSlide.style.display = 'none';
 				currentSlide.setAttribute('aria-hidden', 'true');
-				currentSlide.classList.remove('slide-out-' + direction);
+				currentSlide.classList.remove('slide-out-' + direction, 'transitioning-out');
 
-				// Cleanup next slide classes and styles
+				// Cleanup next slide classes
 				nextSlide.classList.remove('slide-in-' + direction);
-				nextSlide.style.position = '';
+
+				// Reset next slide to relative positioning to maintain height
+				nextSlide.style.position = 'relative';
 				nextSlide.style.top = '';
 				nextSlide.style.left = '';
 				nextSlide.style.width = '';
+				nextSlide.style.height = '';
 				nextSlide.style.zIndex = '';
 
 				// Reset current slide styles
@@ -298,10 +380,14 @@ class EkwaSlider {
 				currentSlide.style.top = '';
 				currentSlide.style.left = '';
 				currentSlide.style.width = '';
+				currentSlide.style.height = '';
 				currentSlide.style.zIndex = '';
 
-				// Reset container height
-				container.style.minHeight = '';
+				// Release container height
+				setTimeout(() => {
+					container.style.height = '';
+					container.style.minHeight = '';
+				}, 50);
 			}, duration);
 		});
 	}
@@ -310,23 +396,32 @@ class EkwaSlider {
 		const direction = isForward ? 'left' : 'right';
 		const container = this.slider.querySelector('.ekwa-slider-container');
 
-		// Set container to relative positioning to contain absolute slides
-		const originalHeight = container.offsetHeight;
-		container.style.minHeight = originalHeight + 'px';
+		// Lock container height before positioning changes
+		const currentHeight = container.offsetHeight;
+		container.style.height = currentHeight + 'px';
+		container.style.minHeight = currentHeight + 'px';
+
+		// Remove active class from current slide
+		currentSlide.classList.remove('active');
+		currentSlide.classList.add('transitioning-out');
 
 		// Position both slides absolutely for simultaneous animation
 		currentSlide.style.position = 'absolute';
 		currentSlide.style.top = '0';
 		currentSlide.style.left = '0';
 		currentSlide.style.width = '100%';
+		currentSlide.style.height = '100%';
 		currentSlide.style.zIndex = '1';
+		currentSlide.style.display = 'block';
 
 		nextSlide.style.position = 'absolute';
 		nextSlide.style.top = '0';
 		nextSlide.style.left = '0';
 		nextSlide.style.width = '100%';
+		nextSlide.style.height = '100%';
 		nextSlide.style.zIndex = '2';
 		nextSlide.style.display = 'block';
+		nextSlide.classList.add('active');
 		nextSlide.setAttribute('aria-hidden', 'false');
 
 		// Add transition classes
@@ -338,14 +433,17 @@ class EkwaSlider {
 				// Hide and cleanup current slide
 				currentSlide.style.display = 'none';
 				currentSlide.setAttribute('aria-hidden', 'true');
-				currentSlide.classList.remove('slide-fade-out-' + direction);
+				currentSlide.classList.remove('slide-fade-out-' + direction, 'transitioning-out');
 
-				// Cleanup next slide classes and styles
+				// Cleanup next slide classes
 				nextSlide.classList.remove('slide-fade-in-' + direction);
-				nextSlide.style.position = '';
+
+				// Reset next slide to relative positioning to maintain height
+				nextSlide.style.position = 'relative';
 				nextSlide.style.top = '';
 				nextSlide.style.left = '';
 				nextSlide.style.width = '';
+				nextSlide.style.height = '';
 				nextSlide.style.zIndex = '';
 
 				// Reset current slide styles
@@ -353,26 +451,52 @@ class EkwaSlider {
 				currentSlide.style.top = '';
 				currentSlide.style.left = '';
 				currentSlide.style.width = '';
+				currentSlide.style.height = '';
 				currentSlide.style.zIndex = '';
 
-				// Reset container height
-				container.style.minHeight = '';
+				// Release container height
+				setTimeout(() => {
+					container.style.height = '';
+					container.style.minHeight = '';
+				}, 50);
 			}, duration);
 		});
 	}	zoomTransition(currentSlide, nextSlide, duration) {
-		currentSlide.classList.add('zoom-out');
+		const container = this.slider.querySelector('.ekwa-slider-container');
+
+		// Lock container height
+		const currentHeight = container.offsetHeight;
+		container.style.height = currentHeight + 'px';
+		container.style.minHeight = currentHeight + 'px';
+
+		// Remove active class from current slide
+		currentSlide.classList.remove('active');
+		currentSlide.classList.add('transitioning-out', 'zoom-out');
+		currentSlide.style.position = 'absolute';
+		currentSlide.style.zIndex = '1';
+		currentSlide.style.display = 'block';
 
 		setTimeout(() => {
 			currentSlide.style.display = 'none';
 			currentSlide.setAttribute('aria-hidden', 'true');
-			currentSlide.classList.remove('zoom-out');
+			currentSlide.classList.remove('zoom-out', 'transitioning-out');
+			currentSlide.style.position = '';
+			currentSlide.style.zIndex = '';
 
 			nextSlide.style.display = 'block';
+			nextSlide.style.position = 'relative';
 			nextSlide.setAttribute('aria-hidden', 'false');
-			nextSlide.classList.add('zoom-in');
+			nextSlide.classList.add('active', 'zoom-in');
 
 			setTimeout(() => {
 				nextSlide.classList.remove('zoom-in');
+				nextSlide.style.position = '';
+
+				// Release container height
+				setTimeout(() => {
+					container.style.height = '';
+					container.style.minHeight = '';
+				}, 50);
 			}, duration);
 		}, duration / 2);
 	}
