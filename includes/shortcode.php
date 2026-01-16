@@ -24,14 +24,16 @@ function ekwa_slider_is_mobile() {
  * @return array
  */
 function ekwa_slider_get_settings() {
-	return get_option( 'ekwa_slider_settings', [
+	$defaults = [
 		'mobile_banner_enabled' => false,
 		'mobile_banner_post_id' => 0,
 		'transition_style' => 'fade',
 		'show_arrows' => true,
 		'show_dots' => true,
 		'arrow_style' => 'default',
-	] );
+	];
+	$settings = get_option( 'ekwa_slider_settings', [] );
+	return wp_parse_args( $settings, $defaults );
 }
 
 /**

@@ -48,6 +48,15 @@
   /* Maintain height during transitions */
 }
 
+/* Height lock during transitions */
+.ekwa-slider.transitioning {
+  overflow: hidden;
+}
+
+.ekwa-slider.transitioning .ekwa-slider-container {
+  overflow: hidden;
+}
+
 .ekwa-slider-slide {
   position: absolute;
   top: 0;
@@ -407,9 +416,21 @@
   display: block !important; /* Ensure mobile banner slide is always visible */
 }
 
-.ekwa-slider-mobile-banner .ekwa-slide-item-content {
+.ekwa-slider-mobile-banner .ekwa-slide-item {
   position: relative;
-  z-index: 2; /* Ensure content appears over background */
+}
+
+.ekwa-slider-mobile-banner .ekwa-slide-item-content {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 20px;
 }
 
 /* Mobile Optimizations */
@@ -497,14 +518,11 @@
 .ekwa-slider-slide.fade-out {
   animation: fadeOut 0.7s cubic-bezier(0.4, 0.0, 0.2, 1) forwards;
   will-change: opacity;
-  /* Critical: force proper positioning and size while fading */
+  /* Position absolutely but don't force height - let content determine it */
   position: absolute !important;
   top: 0 !important;
   left: 0 !important;
-  right: 0 !important;
-  bottom: 0 !important;
   width: 100% !important;
-  height: 100% !important;
   z-index: 1 !important;
   display: block !important;
   visibility: visible !important;
@@ -512,16 +530,15 @@
   transform: none !important;
 }
 
-/* Ensure content inside fading slide stays full width/height */
+/* Keep fade-out content natural size */
 .ekwa-slider-slide.fade-out .ekwa-slide-item,
 .ekwa-slider-slide.fade-out .ekwa-slide-item-background,
 .ekwa-slider-slide.fade-out picture,
 .ekwa-slider-slide.fade-out img {
   width: 100% !important;
-  height: 100% !important;
+  height: auto !important;
   max-width: 100% !important;
   display: block !important;
-  object-fit: cover !important;
 }
 
 @keyframes fadeIn {

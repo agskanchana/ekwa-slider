@@ -288,9 +288,16 @@ class EkwaSlider {
 		const fadeDuration = 700;
 		const container = this.slider.querySelector('.ekwa-slider-container');
 
-		// Store current height to prevent layout shift
-		const currentHeight = currentSlide.offsetHeight;
-		container.style.minHeight = currentHeight + 'px';
+		// Get heights before any changes
+		const sliderHeight = this.slider.offsetHeight;
+		const containerHeight = container.offsetHeight;
+
+		// Lock heights to prevent layout shift
+		this.slider.style.height = sliderHeight + 'px';
+		this.slider.style.minHeight = sliderHeight + 'px';
+		container.style.height = containerHeight + 'px';
+		container.style.minHeight = containerHeight + 'px';
+		this.slider.classList.add('transitioning');
 
 		// Apply classes for CSS-driven transition
 		currentSlide.classList.add('fade-out', 'transitioning-out');
@@ -316,7 +323,11 @@ class EkwaSlider {
 
 			// Release container height
 			setTimeout(() => {
+				this.slider.style.height = '';
+				this.slider.style.minHeight = '';
+				container.style.height = '';
 				container.style.minHeight = '';
+				this.slider.classList.remove('transitioning');
 			}, 50);
 		}, fadeDuration);
 	}
@@ -325,10 +336,16 @@ class EkwaSlider {
 		const direction = isForward ? 'left' : 'right';
 		const container = this.slider.querySelector('.ekwa-slider-container');
 
-		// Lock container height before positioning changes
-		const currentHeight = container.offsetHeight;
-		container.style.height = currentHeight + 'px';
-		container.style.minHeight = currentHeight + 'px';
+		// Get heights before any changes
+		const sliderHeight = this.slider.offsetHeight;
+		const containerHeight = container.offsetHeight;
+
+		// Lock heights to prevent layout shift
+		this.slider.style.height = sliderHeight + 'px';
+		this.slider.style.minHeight = sliderHeight + 'px';
+		container.style.height = containerHeight + 'px';
+		container.style.minHeight = containerHeight + 'px';
+		this.slider.classList.add('transitioning');
 
 		// Remove active class from current slide
 		currentSlide.classList.remove('active');
@@ -385,8 +402,11 @@ class EkwaSlider {
 
 				// Release container height
 				setTimeout(() => {
+					this.slider.style.height = '';
+					this.slider.style.minHeight = '';
 					container.style.height = '';
 					container.style.minHeight = '';
+					this.slider.classList.remove('transitioning');
 				}, 50);
 			}, duration);
 		});
@@ -396,10 +416,16 @@ class EkwaSlider {
 		const direction = isForward ? 'left' : 'right';
 		const container = this.slider.querySelector('.ekwa-slider-container');
 
-		// Lock container height before positioning changes
-		const currentHeight = container.offsetHeight;
-		container.style.height = currentHeight + 'px';
-		container.style.minHeight = currentHeight + 'px';
+		// Get heights before any changes
+		const sliderHeight = this.slider.offsetHeight;
+		const containerHeight = container.offsetHeight;
+
+		// Lock heights to prevent layout shift
+		this.slider.style.height = sliderHeight + 'px';
+		this.slider.style.minHeight = sliderHeight + 'px';
+		container.style.height = containerHeight + 'px';
+		container.style.minHeight = containerHeight + 'px';
+		this.slider.classList.add('transitioning');
 
 		// Remove active class from current slide
 		currentSlide.classList.remove('active');
@@ -456,18 +482,27 @@ class EkwaSlider {
 
 				// Release container height
 				setTimeout(() => {
+					this.slider.style.height = '';
+					this.slider.style.minHeight = '';
 					container.style.height = '';
 					container.style.minHeight = '';
+					this.slider.classList.remove('transitioning');
 				}, 50);
 			}, duration);
 		});
 	}	zoomTransition(currentSlide, nextSlide, duration) {
 		const container = this.slider.querySelector('.ekwa-slider-container');
 
-		// Lock container height
-		const currentHeight = container.offsetHeight;
-		container.style.height = currentHeight + 'px';
-		container.style.minHeight = currentHeight + 'px';
+		// Get heights before any changes
+		const sliderHeight = this.slider.offsetHeight;
+		const containerHeight = container.offsetHeight;
+
+		// Lock heights to prevent layout shift
+		this.slider.style.height = sliderHeight + 'px';
+		this.slider.style.minHeight = sliderHeight + 'px';
+		container.style.height = containerHeight + 'px';
+		container.style.minHeight = containerHeight + 'px';
+		this.slider.classList.add('transitioning');
 
 		// Remove active class from current slide
 		currentSlide.classList.remove('active');
@@ -494,8 +529,11 @@ class EkwaSlider {
 
 				// Release container height
 				setTimeout(() => {
+					this.slider.style.height = '';
+					this.slider.style.minHeight = '';
 					container.style.height = '';
 					container.style.minHeight = '';
+					this.slider.classList.remove('transitioning');
 				}, 50);
 			}, duration);
 		}, duration / 2);

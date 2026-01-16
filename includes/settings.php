@@ -126,6 +126,12 @@ function ekwa_slider_render_settings_page() {
 	] );
 
 	// Ensure keys exist
+	if ( ! isset( $settings['mobile_banner_enabled'] ) ) {
+		$settings['mobile_banner_enabled'] = false;
+	}
+	if ( ! isset( $settings['mobile_banner_post_id'] ) ) {
+		$settings['mobile_banner_post_id'] = 0;
+	}
 	if ( ! isset( $settings['transition_style'] ) ) {
 		$settings['transition_style'] = 'fade';
 	}
@@ -244,19 +250,19 @@ function ekwa_slider_render_settings_page() {
 				</tr>
 
 				<tr>
-					<th scope="row"><?php esc_html_e( 'Mobile Banner Mode', 'ekwa-slider' ); ?></th>
+					<th scope="row"><?php esc_html_e( 'Mobile Banner from Existing Slides', 'ekwa-slider' ); ?></th>
 					<td>
 						<fieldset>
 							<label>
-								<input type="checkbox" name="ekwa_slider_settings[mobile_banner_enabled]" value="1" <?php checked( $settings['mobile_banner_enabled'] ); ?> />
-								<?php esc_html_e( 'Enable mobile banner (shows single slide on mobile devices)', 'ekwa-slider' ); ?>
+								<input type="checkbox" name="ekwa_slider_settings[mobile_banner_enabled]" id="ekwa_mobile_banner_enabled" value="1" <?php checked( $settings['mobile_banner_enabled'] ); ?> />
+								<?php esc_html_e( 'Enable mobile banner from existing slides', 'ekwa-slider' ); ?>
 							</label>
 							<p class="description"><?php esc_html_e( 'When enabled, mobile visitors will see only the selected slide instead of the full slider.', 'ekwa-slider' ); ?></p>
 						</fieldset>
 					</td>
 				</tr>
 
-				<tr>
+				<tr id="ekwa_mobile_banner_slide_row" style="<?php echo $settings['mobile_banner_enabled'] ? '' : 'display: none;'; ?>">
 					<th scope="row"><?php esc_html_e( 'Mobile Banner Slide', 'ekwa-slider' ); ?></th>
 					<td>
 						<select name="ekwa_slider_settings[mobile_banner_post_id]">
@@ -277,6 +283,19 @@ function ekwa_slider_render_settings_page() {
 
 			<?php submit_button(); ?>
 		</form>
+
+		<script>
+		(function() {
+			var checkbox = document.getElementById('ekwa_mobile_banner_enabled');
+			var slideRow = document.getElementById('ekwa_mobile_banner_slide_row');
+			
+			if (checkbox && slideRow) {
+				checkbox.addEventListener('change', function() {
+					slideRow.style.display = this.checked ? '' : 'none';
+				});
+			}
+		})();
+		</script>
 	</div>
 	<?php
 }

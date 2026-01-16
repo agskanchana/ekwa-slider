@@ -26,7 +26,7 @@ $myUpdateChecker = PucFactory::buildUpdateChecker(
 
 // Constants.
 if ( ! defined( 'EKWA_SLIDER_VERSION' ) ) {
-	define( 'EKWA_SLIDER_VERSION', '0.8.0' );
+	define( 'EKWA_SLIDER_VERSION', '0.8.4' );
 }
 if ( ! defined( 'EKWA_SLIDER_FILE' ) ) {
 	define( 'EKWA_SLIDER_FILE', __FILE__ );
